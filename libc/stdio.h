@@ -18,7 +18,6 @@ long long strtoll(const char *nptr, char **endptr, int base);
 
 int isspace(int c);
 
-void *malloc(size_t n);
 void *realloc(void *p, size_t n);
 void free(void *p);
 

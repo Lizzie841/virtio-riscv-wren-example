@@ -1,8 +1,8 @@
 CC := riscv64-elf-gcc
-CFLAGS := -ffreestanding -I$(PWD)/libc -I$(PWD)vm
+CFLAGS := -mcmodel=medany -ffreestanding -Ilibc -Ivm -O1 -g
 
 LD := riscv64-elf-gcc
-LDFLAGS := -nostdlib
+LDFLAGS := -Tlibc/linker.ld -lgcc -nostdlib -g
 
 VM_SOURCES := \
 	vm/wren_compiler.o \
@@ -12,11 +12,15 @@ VM_SOURCES := \
 	vm/wren_utils.o \
 	vm/wren_value.o \
 	vm/wren_vm.o \
-	libc/libc.o
+	libc/libc.o \
+	libc/start.o
 
 all: build
 
-build: libvm.a
+run: vm.exe
+	qemu-system-riscv64 -s -S -M virt -bios none -kernel $<
+
+build: vm.exe
 
 clean:
 	rm vm/*.o
@@ -24,8 +28,11 @@ clean:
 
 .PHONY: all build clean
 
-libvm.a: $(VM_SOURCES)
-	ar rcs $@ $^
+vm.exe: $(VM_SOURCES)
+	$(LD) $(LDFLAGS) $^ -o $@
 
 %.o: %.c
+	$(CC) $(CFLAGS) $< -c -o $@
+
+%.o: %.S
 	$(CC) $(CFLAGS) $< -c -o $@
